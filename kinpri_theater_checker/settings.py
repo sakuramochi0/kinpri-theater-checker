@@ -15,6 +15,10 @@ SPIDER_MODULES = ['kinpri_theater_checker.spiders']
 NEWSPIDER_MODULE = 'kinpri_theater_checker.spiders'
 
 
+# MongoDB settings
+MONGO_DATABASE = 'kinpri_theater_checker'
+
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'kinpri_theater_checker (+https://skrm.ch)'
 
@@ -64,9 +68,10 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'kinpri_theater_checker.pipelines.KinpriTheaterCheckerPipeline': 300,
-#}
+ITEM_PIPELINES = {
+    'kinpri_theater_checker.pipelines.TheaterPipeline': 300,
+    # 'kinpri_theater_checker.pipelines.KinpriTheaterCheckerPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
@@ -83,8 +88,8 @@ ROBOTSTXT_OBEY = True
 
 # Enable and configure HTTP caching (disabled by default)
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-#HTTPCACHE_ENABLED = True
-#HTTPCACHE_EXPIRATION_SECS = 0
-#HTTPCACHE_DIR = 'httpcache'
-#HTTPCACHE_IGNORE_HTTP_CODES = []
-#HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+HTTPCACHE_ENABLED = True
+HTTPCACHE_EXPIRATION_SECS = 60
+HTTPCACHE_DIR = 'httpcache'
+HTTPCACHE_IGNORE_HTTP_CODES = []
+HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
