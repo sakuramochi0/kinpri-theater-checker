@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import datetime
 from kinpri_theater_checker.items import Theater
 
 
@@ -30,6 +31,7 @@ class TheaterSpider(scrapy.Spider):
                 continue
 
             # construct theater object
+            t['last_updated'] = datetime.datetime.now()
             t['pref'] = pref
             t['name'] = name
             t['link'] = link
