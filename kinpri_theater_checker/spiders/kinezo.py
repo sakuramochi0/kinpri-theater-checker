@@ -17,9 +17,10 @@ class KinezoSpider(scrapy.Spider):
     allowed_domains = ["kinezo.jp"]
 
     # prepare start_urls
-    db = get_mongo_client().kinpri_theater_checker.theater
+    db = get_mongo_client().kinpri_theater_checker.theaters
     kinezo_regex = re.compile(r'kinezo.jp|tjoy.net')
     start_urls = [t['link'] for t in db.find({'link': kinezo_regex})]
+    print('start_urls:', start_urls)
 
     def parse(self, response):
         # get theater name
