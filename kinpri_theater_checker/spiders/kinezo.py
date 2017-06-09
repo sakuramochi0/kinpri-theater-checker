@@ -73,18 +73,18 @@ class KinezoSpider(scrapy.Spider):
                 show['schedule_url'] = response.url
 
                 reservation_url = li.css('a::attr(href)').extract_first()
-                if reservation_url:
-                    show['reservation_url'] = reservation_url
-                    yield scrapy.Request(url=reservation_url,
-                                         callback=self.parse_reservation,
-                                         meta={'show': show})
-                else:
+                if state == 'sec05': # soldout
                     show['remaining_seats_num'] = 0
                     show['total_seats_num'] = None
                     show['reserved_seats'] = None
                     show['remaining_seats'] = []
                     show['reservation_url'] = None
                     yield show
+                else: 
+                    show['reservation_url'] = reservation_url
+                    yield scrapy.Request(url=reservation_url,
+                                         callback=self.parse_reservation,
+                                         meta={'show': show})
 
 
     def parse_reservation(self, response):
