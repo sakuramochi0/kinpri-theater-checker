@@ -7,22 +7,19 @@ from kinpri_theater_checker import utils
 from get_mongo_client import get_mongo_client
 
 
-class KinezoSpider(scrapy.Spider):
-    name = "kinezo"
+class AeoncinemaSpider(scrapy.Spider):
+    name = "aeoncinema"
     custom_settings = {
         'ITEM_PIPELINES': {
             'kinpri_theater_checker.pipelines.ShowPipeline': 300,
-        },
-        'USER_AGENT': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.24 Mobile Safari/537.36 kinpri_theater_checker (+https://skrm.ch/prettyrhythm/kinpri-theater-checker/)',
-
+        }
     }
-    allowed_domains = ["kinezo.jp"]
+    allowed_domains = ["aeoncinema.com"]
 
     # prepare start_urls
     db = get_mongo_client().kinpri_theater_checker.theaters
-    kinezo_regex = re.compile(r'kinezo.jp|tjoy.net')
-    start_urls = [t['link'] for t in db.find({'link': kinezo_regex})]
-    print('start_urls:', start_urls)
+    aeoncinema_regex = re.compile(r'aeoncinema.com')
+    start_urls = [t['link'] for t in db.find({'link': aeoncinema_regex})][:1]
 
     def parse(self, response):
         # get theater name
@@ -32,38 +29,32 @@ class KinezoSpider(scrapy.Spider):
             request_url = response.url
         theater = self.db.find_one({'link': request_url}).get('name')
 
-        event_url = list(
-            filter(lambda x: '/event_list' in x,
-                   response.css('#headerMenuData a::attr(href)').extract()))[0]
-        self.logger.info('event_url: ' + event_url)
-
-        # parse normal list
-        movies = response.css('a[name="movieItem"]')
-        for movie in movies:
-            title = ' '.join(movie.css('span::text').extract())
-            if utils.regex_kinpri.search(title):
-                url = movie.css('::attr(href)').extract_first()
-                self.logger.info('title: ' + title)
-                self.logger.info('url: ' + url)
-                yield scrapy.Request(url=url, callback=self.parse_schedule,
-                                     meta={'theater': theater})
+        url = response.css('li.schedule a::attr(href)').extract_first()
+        self.logger.info('schedule_url: ' + schedule_url)
+        yield scrapy.Request(url=url, callback=self.parse_schedule,
+                             meta={'theater': theater})
 
 
     def parse_schedule(self, response):
-        
-        schedule_days = response.css('#schedule p[id^="day_"]')
-        schedule_list = response.css('.schedule_list ul')
-        # self.logger.info('schedule_days: ' + schedule_days.extract_first())
-        for day, ul in zip(schedule_days, schedule_list):
-            date = day.css('span::text').extract_first()
-            for li in ul.css('li'):
+
+        date = response.css('.today::text').extract_first()
+        movies = response.css('.movielist')
+        for movie in movies:
+            title = movie.css('.main a::text').extract_first().strip()
+            
+            # skip not kinpri
+            if not utils.regex_kinpri(title):
+                continue
+
+            shows = movie.css('.timetbl [class^="tbl"]')[1:]
+            for s in shows:
                 show = Show()
      
-                # skip no schedule day
+                start_time, end_time = movie.css('.time ::text').extract()
+                show['start_time'] = ':'.join(re.findall(r'(\d{1,2})', start_time))
+                show['end_time'] = ':'.join(re.findall(r'(\d{1,2})', end_time))
+
                 state = li.css('::attr(class)').extract_first()
-                if not state or state == 'noSchedule':
-                    continue
-     
                 show['updated'] = datetime.datetime.now()
                 title = ' '.join(response.css('.text span::text').extract())
                 show['title'] = title

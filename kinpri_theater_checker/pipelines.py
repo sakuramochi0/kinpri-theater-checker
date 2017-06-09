@@ -15,6 +15,14 @@ def normalize(text):
     return zenhan.z2h(text, mode=zenhan.DIGIT)
 
 
+def parse_date(self, text):
+    date_regex = re.compile(r'(\d{1,2})月(\d{1,2})日')
+    m = date_regex.search(text)
+    date_text = '/'.join(m.groups())
+    date = parse(date_text)
+    return date
+
+
 class KinpriTheaterCheckerPipeline(object):
     pass
 
@@ -90,21 +98,24 @@ class ShowPipeline(object):
 
 
     def process_item(self, item, spider):
-        item['screen'] = normalize(item['screen'])
-        item['date'] = parse(item['date'])
-        state = re.search(r'sec0(\d)', item['ticket_state']).group(1)
-        if state == '5': # ×
-            item['ticket_state'] = 1
-        elif state == '3': # △
-            item['ticket_state'] = 2
-        elif state == '2': # ○
-            item['ticket_state'] = 3
-        elif state == '1': # ◎
-            item['ticket_state'] = 4
-        elif state == '4': # -
-            item['ticket_state'] = 0
+        if spider.name == 'kinezo':
+            item['screen'] = normalize(item['screen'])
+            item['date'] = parse(item['date'])
+            state = re.search(r'sec0(\d)', item['ticket_state']).group(1)
+            if state == '5': # ×
+                item['ticket_state'] = 1
+            elif state == '3': # △
+                item['ticket_state'] = 2
+            elif state == '2': # ○
+                item['ticket_state'] = 3
+            elif state == '1': # ◎
+                item['ticket_state'] = 4
+            elif state == '4': # -
+                item['ticket_state'] = 0
+        elif spider.name == 'aeoncinema':
+            item['date'] = parse_date(item['date'])
+                
 
-        item = dict(item)
-        self.db[self.collection_name].insert(item)
+        self.db[self.collection_name].insert(dict(item))
         return item
 
