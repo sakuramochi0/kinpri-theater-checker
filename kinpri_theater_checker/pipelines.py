@@ -6,8 +6,13 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import re
+import zenhan
 from dateutil.parser import parse
 from get_mongo_client import get_mongo_client
+
+
+def normalize(text):
+    return zenhan.z2h(text, mode=zenhan.DIGIT)
 
 
 class KinpriTheaterCheckerPipeline(object):
@@ -55,6 +60,55 @@ class TheaterPipeline(object):
             item['start_date'] = None
 
         item = dict(item)
-        self.db[self.collection_name].update_one({'name': item['name']}, {'$set': item}, upsert=True)
+        self.db[self.collection_name].update_one(
+            {'name': item['name']}, {'$set': item}, upsert=True)
+        return item
+
+
+class ShowPipeline(object):
+
+    collection_name = 'show'
+
+    def __init__(self, mongo_db):
+        self.mongo_db = mongo_db
+
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            mongo_db=crawler.settings.get('MONGO_DATABASE')
+        )
+
+
+    def open_spider(self, spider):
+        self.client = get_mongo_client()
+        self.db = self.client[self.mongo_db]
+
+
+    def close_spider(self, spider):
+        self.client.close()
+
+
+    def process_item(self, item, spider):
+        item['screen'] = normalize(item['screen'])
+        item['date'] = parse(item['date'])
+        state = re.search(r'(s\d)', item['ticket_state']).group(1)
+        if state == 's5': # ×
+            item['ticket_state'] = 0
+        elif state == 's3': # △
+            item['ticket_state'] = 1
+        elif state == 's2': # ○
+            item['ticket_state'] = 2
+        elif state == 's1': # ◎
+            item['ticket_state'] = 3
+
+        item = dict(item)
+        self.db[self.collection_name].update_one({
+            'theater': item['theater'],
+            'date': item['date'],
+            'start_time': item['start_time'],
+        }, {
+            '$set': item
+        }, upsert=True)
         return item
 

@@ -18,25 +18,16 @@ class TheaterSpider(scrapy.Spider):
         trs = response.css('.area_box tr')
         for tr in trs:
             t = Theater()
+            t['last_updated'] = datetime.datetime.now()
             pref = tr.css('td:nth-child(1)::text').extract_first()
-            name = tr.css('td:nth-child(2) a::text').extract_first()
-            link = tr.css('td:nth-child(2) a::attr(href)').extract_first()
-            start_date = tr.css('td:nth-child(3)::text').extract_first()
-            preticket = tr.css('td:nth-child(4)::text').extract_first()
-            live_viewing_20170610_0800 = tr.css('td:nth-child(5)::text').extract_first()
-            live_viewing_20170610_1020 = tr.css('td:nth-child(6)::text').extract_first()
-
             # skip headers
             if pref == '都道府県':
                 continue
-
-            # construct theater object
-            t['last_updated'] = datetime.datetime.now()
             t['pref'] = pref
-            t['name'] = name
-            t['link'] = link
-            t['start_date'] = start_date
-            t['preticket'] = preticket
-            t['live_viewing_20170610_0800'] = live_viewing_20170610_0800
-            t['live_viewing_20170610_1020'] = live_viewing_20170610_1020
+            t['name'] = tr.css('td:nth-child(2) a::text').extract_first()
+            t['link'] = tr.css('td:nth-child(2) a::attr(href)').extract_first()
+            t['start_date'] = tr.css('td:nth-child(3)::text').extract_first()
+            t['preticket'] = tr.css('td:nth-child(4)::text').extract_first()
+            t['live_viewing_20170610_0800'] = tr.css('td:nth-child(5)::text').extract_first()
+            t['live_viewing_20170610_1020'] = tr.css('td:nth-child(6)::text').extract_first()
             yield t

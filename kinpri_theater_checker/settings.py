@@ -15,12 +15,8 @@ SPIDER_MODULES = ['kinpri_theater_checker.spiders']
 NEWSPIDER_MODULE = 'kinpri_theater_checker.spiders'
 
 
-# MongoDB settings
-MONGO_DATABASE = 'kinpri_theater_checker'
-
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'kinpri_theater_checker (+https://skrm.ch)'
+USER_AGENT = 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.24 Mobile Safari/537.36 kinpri_theater_checker (+https://skrm.ch)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -93,3 +89,7 @@ HTTPCACHE_EXPIRATION_SECS = 60
 HTTPCACHE_DIR = 'httpcache'
 HTTPCACHE_IGNORE_HTTP_CODES = []
 HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+# MongoDB settings
+MONGO_DATABASE = 'kinpri_theater_checker'
+
