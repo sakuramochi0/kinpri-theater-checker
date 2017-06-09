@@ -21,7 +21,7 @@ class KinpriTheaterCheckerPipeline(object):
 
 class TheaterPipeline(object):
 
-    collection_name = 'theater'
+    collection_name = 'theaters'
 
     def __init__(self, mongo_db):
         self.mongo_db = mongo_db
@@ -67,7 +67,7 @@ class TheaterPipeline(object):
 
 class ShowPipeline(object):
 
-    collection_name = 'show'
+    collection_name = 'shows'
 
     def __init__(self, mongo_db):
         self.mongo_db = mongo_db

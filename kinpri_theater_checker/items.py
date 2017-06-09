@@ -40,3 +40,5 @@ class Show(scrapy.Item):
     total_seats_num = scrapy.Field()
     reserved_seats = scrapy.Field()
     remaining_seats = scrapy.Field()
+    schedule_url = scrapy.Field()
+    reservation_url = scrapy.Field()
