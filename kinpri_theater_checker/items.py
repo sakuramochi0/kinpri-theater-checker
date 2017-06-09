@@ -27,10 +27,12 @@ class Theater(scrapy.Item):
 
 class Show(scrapy.Item):
     updated = scrapy.Field()
+    title = scrapy.Field()
+    show_types = scrapy.Field()
+    movie_types = scrapy.Field()
+    date = scrapy.Field()
     theater = scrapy.Field()
     screen = scrapy.Field()
-    title = scrapy.Field()
-    date = scrapy.Field()
     start_time = scrapy.Field()
     end_time = scrapy.Field()
     ticket_state = scrapy.Field() # 0: ×, 1: △, 2: ○, 3: ◎

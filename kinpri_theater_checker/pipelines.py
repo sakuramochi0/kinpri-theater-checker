@@ -92,23 +92,19 @@ class ShowPipeline(object):
     def process_item(self, item, spider):
         item['screen'] = normalize(item['screen'])
         item['date'] = parse(item['date'])
-        state = re.search(r'(s\d)', item['ticket_state']).group(1)
-        if state == 's5': # ×
-            item['ticket_state'] = 0
-        elif state == 's3': # △
+        state = re.search(r'sec0(\d)', item['ticket_state']).group(1)
+        if state == '5': # ×
             item['ticket_state'] = 1
-        elif state == 's2': # ○
+        elif state == '3': # △
             item['ticket_state'] = 2
-        elif state == 's1': # ◎
+        elif state == '2': # ○
             item['ticket_state'] = 3
+        elif state == '1': # ◎
+            item['ticket_state'] = 4
+        elif state == '4': # -
+            item['ticket_state'] = 0
 
         item = dict(item)
-        self.db[self.collection_name].update_one({
-            'theater': item['theater'],
-            'date': item['date'],
-            'start_time': item['start_time'],
-        }, {
-            '$set': item
-        }, upsert=True)
+        self.db[self.collection_name].insert(item)
         return item
 

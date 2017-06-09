@@ -17,9 +17,9 @@ class KinezoSpider(scrapy.Spider):
     allowed_domains = ["kinezo.jp"]
 
     # prepare start_urls
-    kinezo_regex = re.compile(r'kinezo.jp|tjoy.net')
     db = get_mongo_client().kinpri_theater_checker.theater
-    start_urls = [t['link'] for t in db.find({'link': kinezo_regex})][:1]
+    kinezo_regex = re.compile(r'kinezo.jp|tjoy.net')
+    start_urls = [t['link'] for t in db.find({'link': kinezo_regex})]
 
     def parse(self, response):
         # get theater name
@@ -27,54 +27,61 @@ class KinezoSpider(scrapy.Spider):
             request_url = response.request.meta['redirect_urls'][0]
         else:
             request_url = response.url
-        theater_name = self.db.find_one({'link': request_url}).get('name')
+        theater = self.db.find_one({'link': request_url}).get('name')
 
         event_url = list(
             filter(lambda x: '/event_list' in x,
                    response.css('#headerMenuData a::attr(href)').extract()))[0]
         self.logger.info('event_url: ' + event_url)
 
-        # parse event list
-        # yield scrapy.Request(url=event_url, callback=self.parse_event,
-        #                      meta={'theater': theater_name})
-
         # parse normal list
         movies = response.css('a[name="movieItem"]')
         for movie in movies:
             title = ' '.join(movie.css('span::text').extract())
-            if REGEX_KINPRI.search(title):
+            if utils.regex_kinpri.search(title):
                 url = movie.css('::attr(href)').extract_first()
                 self.logger.info('title: ' + title)
                 self.logger.info('url: ' + url)
-                yield scrapy.Request(url=url, callback=self.parse_schedule)
+                yield scrapy.Request(url=url, callback=self.parse_schedule,
+                                     meta={'theater': theater})
 
 
     def parse_schedule(self, response):
-        lis = response.css('.eventScheduleList li')
-        for li in lis:
-            show = Show()
-            show['updated'] = datetime.datetime.now()
-            show['theater'] = response.meta['theater']
-            show['screen'] = li.css('.screen_name::text').extract_first()
-            title = li.css('.title::text').extract_first()
-            if not REGEX_KINPRI.search(title):
-                continue
-            show['title'] = title
-            show['date'] = li.css('.date::text').extract_first()
-            show['start_time'] = li.css('.start::text').extract_first()
-            show['end_time'] = li.css('.end::text').extract_first()
-            show['ticket_state'] = li.css('.ticket_state::attr(class)').extract_first()
         
-            reservation_url = response.urljoin(li.css('a::attr(href)').extract_first())
-            if reservation_url:
-                yield scrapy.Request(url=reservation_url, callback=self.parse_reservation,
-                                     meta={'show': show})
-            else:
-                show['remaining_seats_num'] = 0
-                show['total_seats_num'] = None
-                show['reserved_seats'] = None
-                show['remaining_seats'] = []
-                yield show
+        schedule_days = response.css('#schedule p[id^="day_"]')
+        schedule_list = response.css('.schedule_list ul')
+        # self.logger.info('schedule_days: ' + schedule_days.extract_first())
+        for day, ul in zip(schedule_days, schedule_list):
+            date = day.css('span::text').extract_first()
+            for li in ul.css('li'):
+                show = Show()
+     
+                # skip no schedule day
+                state = li.css('::attr(class)').extract_first()
+                if not state or state == 'noSchedule':
+                    continue
+     
+                show['updated'] = datetime.datetime.now()
+                title = ' '.join(response.css('.text span::text').extract())
+                show['title'] = title
+                show['movie_types'] = utils.get_kinpri_types(title)
+                show['date'] = date
+                show['ticket_state'] = state
+                show['theater'] = response.meta['theater']
+                show['screen'], time = li.css('::text').extract()
+                show['start_time'], show['end_time'] = time.split(' - ')
+
+                reservation_url = li.css('a::attr(href)').extract_first()
+                if reservation_url:
+                    yield scrapy.Request(url=reservation_url,
+                                         callback=self.parse_reservation,
+                                         meta={'show': show})
+                else:
+                    show['remaining_seats_num'] = 0
+                    show['total_seats_num'] = None
+                    show['reserved_seats'] = None
+                    show['remaining_seats'] = []
+                    yield show
 
 
     def parse_reservation(self, response):
