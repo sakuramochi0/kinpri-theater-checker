@@ -10,7 +10,8 @@ def get_kinpri_types(title):
         types.append('cheering')
     elif re.search('通常上映', title):
         types.append('normal')
-    elif re.search('舞台挨拶', title):
+
+    if re.search('舞台挨拶', title):
         types.append('special')
         types.append('talkshow')
         if re.search('中継', title):
