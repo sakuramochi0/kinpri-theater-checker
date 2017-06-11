@@ -1,7 +1,7 @@
 import re
 
 
-regex_kinpri = re.compile(r'king of prism|キンプリ|キンプラ', flags=re.I)
+regex_kinpri = re.compile(r'king\sof\sprism|キンプリ|キンプラ', flags=re.I)
 
 
 def get_kinpri_types(title):

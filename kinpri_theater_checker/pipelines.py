@@ -15,7 +15,7 @@ def normalize(text):
     return zenhan.z2h(text, mode=zenhan.DIGIT)
 
 
-def parse_date(self, text):
+def parse_date(text):
     date_regex = re.compile(r'(\d{1,2})月(\d{1,2})日')
     m = date_regex.search(text)
     date_text = '/'.join(m.groups())
@@ -61,9 +61,6 @@ class TheaterPipeline(object):
             # match like this: '6.10 (sat)'
             date_str = m.group(1).replace('.', '/')
             item['start_date'] = parse(date_str)
-        elif '夏' in item['start_date']:
-            # in case 'summer'
-            item['start_date'] = parse('2017/08/01')
         else:
             item['start_date'] = None
 
@@ -114,6 +111,17 @@ class ShowPipeline(object):
                 item['ticket_state'] = 0
         elif spider.name == 'aeoncinema':
             item['date'] = parse_date(item['date'])
+            state = item['ticket_state']
+            if state == '×': # ×
+                item['ticket_state'] = 1
+            elif state == '△': # △
+                item['ticket_state'] = 2
+            elif state == '○': # ○
+                item['ticket_state'] = 3
+            elif state == '◎': # ◎
+                item['ticket_state'] = 4
+            else:
+                item['ticket_state'] = 0
                 
 
         self.db[self.collection_name].insert(dict(item))
