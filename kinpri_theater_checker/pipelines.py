@@ -123,7 +123,17 @@ class ShowPipeline(object):
             else:
                 item['ticket_state'] = 0
                 
-
         self.db[self.collection_name].insert(dict(item))
+
+        # update latest shows
+        self.db.shows_latest.update_one({
+            'date': item['date'],
+            'theater': item['theater'],
+            'screen': item['screen'],
+            'start_time': item['start_time'],
+        }, {'$set': dict(item)},
+            upsert=True,
+        )
+
         return item
 
