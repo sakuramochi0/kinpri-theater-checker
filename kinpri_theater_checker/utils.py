@@ -21,6 +21,8 @@ def get_kinpri_types(title):
         types.append('kinpri1')
         if re.search('大おさらい', title):
             types.append('rl')
+    elif re.search('by PrettyRhythm', title):
+        types.append('kinpri1')
 
     # set default
     if not types:

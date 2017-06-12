@@ -14,7 +14,6 @@ class KinezoSpider(scrapy.Spider):
             'kinpri_theater_checker.pipelines.ShowPipeline': 300,
         },
         'USER_AGENT': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.24 Mobile Safari/537.36 kinpri_theater_checker (+https://skrm.ch/prettyrhythm/kinpri-theater-checker/)',
-
     }
     allowed_domains = ["kinezo.jp"]
 
@@ -22,7 +21,6 @@ class KinezoSpider(scrapy.Spider):
     db = get_mongo_client().kinpri_theater_checker.theaters
     kinezo_regex = re.compile(r'kinezo.jp|tjoy.net')
     start_urls = [t['link'] for t in db.find({'link': kinezo_regex})]
-    print('start_urls:', start_urls)
 
     def parse(self, response):
         # get theater name
