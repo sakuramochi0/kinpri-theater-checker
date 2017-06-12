@@ -64,7 +64,7 @@ class KinezoSpider(scrapy.Spider):
                     show['movie_types'] = utils.get_kinpri_types(title)
                     show['start_time'] = s.css('.startTime::text').extract_first()
                     show['end_time'] = s.css('.endTime::text').extract_first()
-                    state = s.css('.tl .uolIcon .scheduleIcon::attr(alt)').re(r'\[(.)\]')
+                    state = s.css('.uolIcon .scheduleIcon::attr(alt)').re(r'\[(.)\]')
                     if state:
                         show['ticket_state'] = state[0]
                     else:
