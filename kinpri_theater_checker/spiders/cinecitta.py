@@ -61,7 +61,7 @@ class CinecittaSpider(scrapy.Spider):
                 continue
 
             screen = movie.css('a.theaterlink::text').re(r'\d+')[0]
-            shows = movie.css('.time2')
+            shows = movie.css('.time1, .time2')
             for s in shows:
                 show = Show()
                 show['updated'] = datetime.datetime.now()
