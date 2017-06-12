@@ -76,7 +76,7 @@ class CinecittaSpider(scrapy.Spider):
                     break
                 show['start_time'] = times[0]
                 show['end_time'] = times[1]
-                state = s.css('img::attr(src)').extract_first()
+                show['ticket_state'] = s.css('img::attr(src)').extract()[-1]
                 show['reservation_url'] = s.css('a::attr(href)').extract_first()
                 # TODO: check seats
                 # if reservation_url:

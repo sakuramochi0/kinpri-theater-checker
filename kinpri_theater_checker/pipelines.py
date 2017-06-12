@@ -19,14 +19,12 @@ def parse_date(text, theater=None):
     if theater is None:
         date_regex = re.compile(r'(\d{1,2})月(\d{1,2})日')
         m = date_regex.search(text)
-        date_text = '/'.join(m.groups())
-        date = parse(date_text)
-        return date
+        text = '/'.join(m.groups())
     elif theater == 'unitedcinemas':
         date_regex = re.compile(r'\d{4}-\d{2}-\d{2}')
-        date_text = date_regex.search(text).group(0)
-        date = parse(date_text)
-        return date
+        text = date_regex.search(text).group(0)
+    date = parse(text)
+    return date
 
 
 class KinpriTheaterCheckerPipeline(object):
@@ -140,6 +138,17 @@ class ShowPipeline(object):
             elif state == '□': # time out
                 item['ticket_state'] = 0
             item['end_time'] = item['end_time'].replace('～', '')
+        elif spider.name == 'cinecitta':
+            item['date'] = parse(item['date'])
+            state = item['ticket_state']
+            if 'manseki' in state: # ×
+                item['ticket_state'] = 1
+            elif 'jakkan' in state: # △
+                item['ticket_state'] = 2
+            elif 'yoyuu' in state: # ○
+                item['ticket_state'] = 3
+            elif 'juubun' in state: # ◎
+                item['ticket_state'] = 4
                 
         self.db[self.collection_name].insert(dict(item))
 
