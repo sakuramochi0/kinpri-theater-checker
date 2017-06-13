@@ -149,7 +149,20 @@ class ShowPipeline(object):
                 item['ticket_state'] = 3
             elif 'juubun' in state: # ◎
                 item['ticket_state'] = 4
-                
+        elif spider.name == 'movix':
+            item['date'] = parse(item['date'])
+            state = item['ticket_state']
+            if '販売終了' in state: # ×
+                item['ticket_state'] = 1
+            elif '残りわずか' in state: # △
+                item['ticket_state'] = 2
+            elif '余裕あり' in state: # ページでは◎だが、1種類しかないので○にする
+                item['ticket_state'] = 3
+            elif '' in state: # ◎
+                item['ticket_state'] = 4
+            elif '販売終了' in state: # -
+                item['ticket_state'] = 0
+
         self.db[self.collection_name].insert(dict(item))
 
         # update latest shows
