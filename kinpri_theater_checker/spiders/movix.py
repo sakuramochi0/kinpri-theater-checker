@@ -112,10 +112,10 @@ end
         reserveds = []
         for seat in seats:
             if seat.css('img[src*="seat_no"]'):
-                id = eat.css('::attr(title)').extract_first()
+                id = seat.css('::attr(title)').extract_first()
                 reserveds.append(id)
             elif seat.css('img[src*="seat_off"]'):
-                id = eat.css('::attr(title)').extract_first()
+                id = seat.css('::attr(title)').extract_first()
                 remainings.append(id)
         show['remaining_seats_num'] = len(remainings)
         show['total_seats_num'] = len(remainings) + len(reserveds)
