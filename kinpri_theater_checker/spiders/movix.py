@@ -14,6 +14,7 @@ class MovixSpider(scrapy.Spider):
         'ITEM_PIPELINES': {
             'kinpri_theater_checker.pipelines.ShowPipeline': 300,
         },
+        'CONCURRENT_REQUESTS': 2,
     }
     allowed_domains = ['smt-cinema.com']
 
