@@ -28,7 +28,7 @@ class TohoSpider(scrapy.Spider):
             yield SplashRequest(
                 url=url,
                 callback=self.parse,
-                args={'wait': 0.5},
+                args={'wait': 3},
             )
 
 
