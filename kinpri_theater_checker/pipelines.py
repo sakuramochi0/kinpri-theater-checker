@@ -170,6 +170,9 @@ class ShowPipeline(object):
                 item['ticket_state'] = 3
             elif 'is-status-01' in state: # ◎
                 item['ticket_state'] = 4
+        elif spider.name == 'ttcg':
+            item['date'] = parse(item['date'])
+            item['end_time'] = item['end_time'].replace('～', '')
 
         self.db[self.collection_name].insert(dict(item))
 
