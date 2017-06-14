@@ -50,10 +50,10 @@ class TohoSpider(scrapy.Spider):
                 continue
 
             screens = movie.css('.schedule-screen')
-            for screen in screens:
-                screen = screen.css('.schedule-screen-title::text').extract_first()
+            for s in screens:
+                screen = s.css('.schedule-screen-title::text').extract_first()
 
-                shows = movie.css('.schedule-item')
+                shows = s.css('.schedule-item')
                 for s in shows:
                     show = Show()
                     show['updated'] = datetime.datetime.now()
