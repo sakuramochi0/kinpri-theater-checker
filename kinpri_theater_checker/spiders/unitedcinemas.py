@@ -46,7 +46,7 @@ class KinezoSpider(scrapy.Spider):
             title = movie.css('.movieTitle a::text').extract_first()
             
             # skip the movie is not kinpri
-            if not utils.regex_kinpri.search(title):
+            if not utils.is_title_kinpri(title):
                 continue
             
             shows_rows = movie.css('.tl>li')

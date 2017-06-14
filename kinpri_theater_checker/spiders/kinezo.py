@@ -39,12 +39,13 @@ class KinezoSpider(scrapy.Spider):
         movies = response.css('a[name="movieItem"]')
         for movie in movies:
             title = ' '.join(movie.css('span::text').extract())
-            if utils.regex_kinpri.search(title):
-                url = movie.css('::attr(href)').extract_first()
-                self.logger.info('title: ' + title)
-                self.logger.info('url: ' + url)
-                yield scrapy.Request(url=url, callback=self.parse_schedule,
-                                     meta={'theater': theater})
+            if not utils.is_title_kinpri(title):
+                continue
+            url = movie.css('::attr(href)').extract_first()
+            self.logger.info('title: ' + title)
+            self.logger.info('url: ' + url)
+            yield scrapy.Request(url=url, callback=self.parse_schedule,
+                                 meta={'theater': theater})
 
 
     def parse_schedule(self, response):

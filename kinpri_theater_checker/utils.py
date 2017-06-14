@@ -1,7 +1,15 @@
 import re
+import zenhan
 
 
-regex_kinpri = re.compile(r'king\sof\sprism|キンプリ|キンプラ', flags=re.I)
+def normalize(text):
+    return zenhan.z2h(text, mode=zenhan.DIGIT|zenhan.ASCII)
+
+
+def is_title_kinpri(title):
+    title = normalize(title)
+    regex_kinpri = re.compile(r'king\sof\sprism|キンプリ|キンプラ', flags=re.I)
+    return regex_kinpri.search(title)
 
 
 def get_kinpri_types(title):

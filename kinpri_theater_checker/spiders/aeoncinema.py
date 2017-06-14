@@ -43,7 +43,7 @@ class AeoncinemaSpider(scrapy.Spider):
             title = movie.css('.main a::text').extract_first().strip()
             
             # skip not kinpri
-            if not utils.regex_kinpri.search(title):
+            if not utils.is_title_kinpri(title):
                 continue
 
             shows = movie.css('.timetbl [class^="tbl"]')[1:]

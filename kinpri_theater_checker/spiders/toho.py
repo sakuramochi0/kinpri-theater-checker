@@ -8,41 +8,17 @@ from kinpri_theater_checker import utils
 from get_mongo_client import get_mongo_client
 
 
-class MovixSpider(scrapy.Spider):
-    name = 'movix'
+class TohoSpider(scrapy.Spider):
+    name = 'toho'
     custom_settings = {
         'ITEM_PIPELINES': {
             'kinpri_theater_checker.pipelines.ShowPipeline': 300,
         },
     }
-    allowed_domains = ['smt-cinema.com']
+    allowed_domains = ['tohotheater.jp']
 
     # prepare start_urls
     db = get_mongo_client().kinpri_theater_checker.theaters
-    script = '''
-treat = require("treat")
-
-function get_movie(splash, i)
-    local button = splash.execjs(
-        "document.querySelectorAll('.scrollDate:not(.nonactive)')[" .. i .. "]")
-    button.mouse_click()
-    local res = {
-        html = splash:html(),
-        ok = true,
-    }
-    return res
-end
-
-function main(splash)
-    local days = splash:execjs(
-        "document.querySelectorAll('.scrollDate:not(.nonactive)').length")
-    local movies = treat.as_array({})
-    for i = 0, days - 1 do
-        movies[i] = get_movie(splash, i)
-    end
-    return movies
-end
-'''
 
 
     def start_requests(self):
@@ -64,39 +40,40 @@ end
             request_url = response.url
         theater = self.db.find_one({'link': request_url}).get('name')
 
-        date = response.css('#Day_schedule h1::text').extract_first()
-        movies = response.css('.scheduleBox')
+        date = response.css('.schedule-body-day::text').extract_first()
+        movies = response.css('.schedule-body-section-item')
         for movie in movies:
-            title = movie.css('h2 ::text').extract_first()
+            title = movie.css('.schedule-body-title::text').extract_first()
             
             # skip the movie is not kinpri
             if not utils.is_title_kinpri(title):
                 continue
 
-            shows = movie.css('.scheduleBox>table>tbody>tr>td')
-            for s in shows:
-                show = Show()
-                show['updated'] = datetime.datetime.now()
-                show['theater'] = theater
-                show['schedule_url'] = response.url
-                show['date'] = date
-                show['title'] = title
-                show['movie_types'] = utils.get_kinpri_types(title)
-                screen = s.css('p::text').re(r'\d+')
-                if not screen:
-                    break
-                show['screen'] = screen[0]
-                show['start_time'] = s.css('span::text').extract_first()
-                show['end_time'] = s.css('tr>td::text').re(r'\d+:\d+')[0]
-                show['ticket_state'] = s.css('img::attr(alt)').extract_first()
-                reservation_url = s.css('td[onclick]::attr(onclick)')
-                if reservation_url:
-                    reservation_url = reservation_url.re(r"'(https://.+?)'")[0]
-                    yield scrapy.Request(url=reservation_url,
-                                         callback=self.parse_reservation,
-                                         meta={'show': show},
-                    )
-                else: 
+            screens = movie.css('.schedule-screen')
+            for screen in screens:
+                screen = screen.css('.schedule-screen-title::text').extract_first()
+
+                shows = movie.css('.schedule-item')
+                for s in shows:
+                    show = Show()
+                    show['updated'] = datetime.datetime.now()
+                    show['theater'] = theater
+                    show['schedule_url'] = response.url
+                    show['date'] = date
+                    show['title'] = title
+                    show['movie_types'] = utils.get_kinpri_types(title)
+                    show['screen'] = screen
+                    show['start_time'] = s.css('.time .start::text').extract_first()
+                    show['end_time'] = s.css('.time .end::text').extract_first()
+                    show['ticket_state'] = s.css('.status::attr(class)').extract_first()
+                    reservation_url = s.css('a')
+                    # if reservation_url:
+                    #     reservation_url = 
+                    #     yield scrapy.Request(url=reservation_url,
+                    #                          callback=self.parse_reservation,
+                    #                          meta={'show': show},
+                    #     )
+                    # else: 
                     show['remaining_seats_num'] = 0
                     show['total_seats_num'] = None
                     show['reserved_seats'] = None

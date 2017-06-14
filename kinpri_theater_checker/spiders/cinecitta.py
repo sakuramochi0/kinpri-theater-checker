@@ -57,7 +57,7 @@ class CinecittaSpider(scrapy.Spider):
             title = movie.css('.item1 ::text').extract_first()
             
             # skip the movie is not kinpri
-            if not utils.regex_kinpri.search(title):
+            if not utils.is_title_kinpri(title):
                 continue
 
             screen = movie.css('a.theaterlink::text').re(r'\d+')[0]

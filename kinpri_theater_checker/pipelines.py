@@ -6,13 +6,9 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import re
-import zenhan
 from dateutil.parser import parse
 from get_mongo_client import get_mongo_client
-
-
-def normalize(text):
-    return zenhan.z2h(text, mode=zenhan.DIGIT)
+from kinpri_theater_checker import utils
 
 
 def parse_date(text, theater=None):
@@ -99,8 +95,9 @@ class ShowPipeline(object):
 
 
     def process_item(self, item, spider):
+        item['title'] = utils.normalize(item['title'])
         if spider.name == 'kinezo':
-            item['screen'] = normalize(item['screen'])
+            item['screen'] = utils.normalize(item['screen'])
             item['date'] = parse(item['date'])
             state = re.search(r'sec0(\d)', item['ticket_state']).group(1)
             if state == '5': # ×
@@ -162,6 +159,17 @@ class ShowPipeline(object):
                 item['ticket_state'] = 4
             elif '販売終了' in state: # -
                 item['ticket_state'] = 0
+        elif spider.name == 'toho':
+            item['date'] = parse_date(item['date'])
+            state = item['ticket_state']
+            if 'is-status-04' in state: # ×
+                item['ticket_state'] = 1
+            elif 'is-status-03' in state: # △
+                item['ticket_state'] = 2
+            elif 'is-status-02' in state: # ○
+                item['ticket_state'] = 3
+            elif 'is-status-01' in state: # ◎
+                item['ticket_state'] = 4
 
         self.db[self.collection_name].insert(dict(item))
 
