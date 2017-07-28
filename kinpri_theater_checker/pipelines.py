@@ -52,17 +52,23 @@ class TheaterPipeline(object):
 
 
     def process_item(self, item, spider):
-        item['preticket'] = '○' in item['preticket']
-        item['live_viewing_20170610_0800'] = '○' in item['live_viewing_20170610_0800']
-        item['live_viewing_20170610_1020'] = '○' in item['live_viewing_20170610_1020']
+        if 'start_date' in item:
+            date = item['start_date']
+        else:
+            date = item['start_date_4dx']
 
-        m = re.search(r'(\d{1,2}.\d{1,2})', item['start_date'])
+        m = re.search(r'(\d{1,2}.\d{1,2})', date)
         if m:
             # match like this: '6.10 (sat)'
             date_str = m.group(1).replace('.', '/')
-            item['start_date'] = parse(date_str)
+            date = parse(date_str)
         else:
-            item['start_date'] = None
+            date = None
+
+        if 'start_date' in item:
+            item['start_date'] = date
+        else:
+            item['start_date_4dx'] = date
 
         item = dict(item)
         self.db[self.collection_name].update_one(

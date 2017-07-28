@@ -27,7 +27,4 @@ class TheaterSpider(scrapy.Spider):
             t['name'] = tr.css('td:nth-child(2) a::text').extract_first()
             t['link'] = tr.css('td:nth-child(2) a::attr(href)').extract_first()
             t['start_date'] = tr.css('td:nth-child(3)::text').extract_first()
-            t['preticket'] = tr.css('td:nth-child(4)::text').extract_first()
-            t['live_viewing_20170610_0800'] = tr.css('td:nth-child(5)::text').extract_first()
-            t['live_viewing_20170610_1020'] = tr.css('td:nth-child(6)::text').extract_first()
             yield t

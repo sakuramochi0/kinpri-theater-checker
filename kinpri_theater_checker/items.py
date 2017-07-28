@@ -20,9 +20,8 @@ class Theater(scrapy.Item):
     name = scrapy.Field()
     link = scrapy.Field()
     start_date = scrapy.Field()
-    preticket = scrapy.Field()
-    live_viewing_20170610_0800 = scrapy.Field()
-    live_viewing_20170610_1020 = scrapy.Field()
+    start_date_4dx = scrapy.Field()
+    has_4dx = scrapy.Field()
 
 
 class Show(scrapy.Item):
